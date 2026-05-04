@@ -1,0 +1,16 @@
+{
+  "name": "ai-auditor-browser-ext",
+  "version": "0.3.0",
+  "private": true,
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "vite build && vite --config vite.content.config.ts build",
+    "build:content": "vite --config vite.content.config.ts build"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.1.4",
+    "rimraf": "^5.0.5",
+    "typescript": "^5.9.2",
+    "vite": "^5.3.4"
+  }
+}

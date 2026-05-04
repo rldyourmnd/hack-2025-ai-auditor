@@ -1,0 +1,250 @@
+{
+  "name": "ai-auditor-vscode",
+  "displayName": "Prompt Audit - Curestry",
+  "description": "Analyze and suggest improvements to selected text using local or remote helpers.",
+  "version": "0.4.13",
+  "publisher": "your-publisher",
+  "main": "out/extension.js",
+  "engines": {
+    "vscode": "^1.70.0"
+  },
+  "scripts": {
+    "build": "tsc -p .",
+    "pack": "vsce package"
+  },
+  "contributes": {
+    "commands": [
+      { "command": "aiAuditor.scanCCIWorkspace", "title": "AI Auditor: CCI - Scan Project" },
+      { "command": "aiAuditor.scanPfPWorkspace", "title": "AI Auditor: PFP - Scan Workspace" },
+      { "command": "aiAuditor.exportPfpProfiles", "title": "AI Auditor: PFP - Export Profiles" },
+      { "command": "aiAuditor.ahkInstall", "title": "AI Auditor: AHK - Auto Install & Launch" },
+      { "command": "aiAuditor.ahkInstallPanel", "title": "AI Auditor: AHK - Setup Panel" },
+      { "command": "aiAuditor.ahkForgetPath", "title": "AI Auditor: AHK - Forget Saved Path" },
+      { "command": "aiAuditor.analyze", "title": "AI Auditor: Run Audit" },
+      { "command": "aiAuditor.grabNow", "title": "AI Auditor: Grab Chat Draft" },
+      { "command": "aiAuditor.cancelAnalysis", "title": "AI Auditor: Cancel Analysis" },
+      { "command": "aiAuditor.repoStructureV2", "title": "AI Auditor: Repo Structure (V2)" },
+      { "command": "aiAuditor.repoStructureV1", "title": "AI Auditor: Repo Structure (V1)" },
+      { "command": "aiAuditor.uploadRawFeatures", "title": "AI Auditor: Upload Raw Features (Send)" },
+      { "command": "aiAuditor.uploadDryRun", "title": "AI Auditor: Upload Raw Features — Dry Run" },
+      { "command": "aiAuditor.setUploadToken", "title": "AI Auditor: Set Upload Token" },
+      { "command": "aiAuditor.clearUploadToken", "title": "AI Auditor: Clear Upload Token" },
+      { "command": "aiAuditor.buildCombinedReport", "title": "AI Auditor: Build Combined Report" },
+      { "command": "aiAuditor.simulateUploadArchive", "title": "AI Auditor: Simulate Upload (.zip legacy)" },
+      { "command": "aiAuditor.simulateNzip", "title": "AI Auditor: Simulate Backend (.nzip)" }
+    ],
+    "menus": {
+      "commandPalette": [
+        { "command": "aiAuditor.ahkInstall" },
+        { "command": "aiAuditor.ahkInstallPanel" },
+        { "command": "aiAuditor.ahkForgetPath" }
+      ]
+    },
+    "keybindings": [
+      { "command": "aiAuditor.grabNow", "key": "ctrl+alt+g", "mac": "cmd+alt+g", "when": "editorTextFocus || !editorFocus" }
+    ],
+    "configuration": {
+      "title": "Revizor",
+      "properties": {
+        "revizor.methods.enabled": {
+          "type": "array",
+          "default": ["uia", "simCopy", "interactiveCopy"],
+          "description": "Ordered list of capture methods to try."
+        },
+        "revizor.privacy.noClipboard": {
+          "type": "boolean",
+          "default": false,
+          "description": "Do not use system clipboard (disables simCopy/interactiveCopy)."
+        },
+        "revizor.ui.showPreview": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show preview webview before applying revised text."
+        },
+        "revizor.keys.grab": {
+          "type": "string",
+          "default": "ctrl+alt+g",
+          "description": "Default keybinding for Grab Chat Draft (overridden by keybindings)."
+        },
+        "cursorAudit.sendHotkey": {
+          "type": "string",
+          "default": "ctrl+enter",
+          "description": "Hotkey used to trigger Analyze & Send."
+        },
+        "cursorAudit.osMethod": {
+          "type": "string",
+          "enum": ["auto","uia","applescript","xdotool"],
+          "default": "auto",
+          "description": "Preferred OS method for paste/send."
+        },
+        "dlpCli.enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable local DLP CLI for prompt sanitization before helper server."
+        },
+        "dlpCli.path": {
+          "type": "string",
+          "default": "",
+          "description": "Absolute path to dlp-cli executable (e.g., C:\\Program Files\\DLP\\dlp-cli.exe)."
+        },
+        "dlpCli.timeoutMs": {
+          "type": "number",
+          "default": 6000,
+          "minimum": 1000,
+          "maximum": 60000,
+          "description": "Timeout for DLP CLI invocation in milliseconds."
+        },
+        "ai-auditor.maxFiles": {
+          "type": "number",
+          "default": 1200,
+          "description": "Лимит файлов для Shotgun"
+        },
+        "ai-auditor.maxFileKB": {
+          "type": "number",
+          "default": 50,
+          "description": "Лимит размера файла (KB) для Shotgun"
+        },
+        "ai-auditor.include": {
+          "type": "array",
+          "default": ["**/*"],
+          "items": { "type": "string" },
+          "description": "Globs include"
+        },
+        "ai-auditor.exclude": {
+          "type": "array",
+          "default": ["**/node_modules/**","**/.git/**","**/dist/**","**/build/**","**/*.png","**/*.jpg","**/*.pdf"],
+          "items": { "type": "string" },
+          "description": "Globs exclude (плюс .gitignore)"
+        },
+        "ai-auditor.repomix.style": {
+          "type": "string",
+          "enum": ["xml","markdown","plain"],
+          "default": "xml",
+          "description": "Стиль вывода Repomix"
+        },
+        "ai-auditor.repomix.compress": {
+          "type": "boolean",
+          "default": true,
+          "description": "Включить компрессию (Tree-sitter) в Repomix"
+        },
+        "aiAuditorPfp.tier": { "type": "string", "enum": ["compact","standard","full"], "default": "full" },
+        "aiAuditorPfp.include": { "type": "array", "default": ["**/*.py"], "items": { "type": "string" }, "description": "Globs include for PFP" },
+        "aiAuditorPfp.exclude": { "type": "array", "default": ["**/node_modules/**","**/.git/**","**/dist/**","**/build/**","**/*.png","**/*.jpg","**/*.pdf"], "items": { "type": "string" }, "description": "Globs exclude for PFP" },
+        "aiAuditorPfp.excludeVirtualEnv": { "type": "boolean", "default": true, "description": "Exclude common virtualenv folders (e.g. .venv, venv) from PFP scanning" },
+        "aiAuditorPfp.excludeSitePackages": { "type": "boolean", "default": true, "description": "Exclude Python site-packages folders from PFP scanning" },
+        "aiAuditorPfp.maxWorkers": { "type": "number", "default": 0, "description": "Override scan concurrency for PFP (0 = auto)" },
+        "aiAuditorPfp.batchSize": { "type": "number", "default": 200, "description": "Batch size for PFP scanning" },
+        "aiAuditorPfp.enableLocalPreview": { "type": "boolean", "default": true, "description": "Enable local TreeView/Diagnostics for PFP" },
+        "aiAuditorPfp.policyFile": { "type": "string", "description": "Path to .pfp-policy.*" },
+        "aiAuditorPfp.export.path": { "type": "string", "default": ".pfp/profiles.jsonl", "description": "Export path for PFP JSONL" },
+        "cci.backendUrl": {
+          "type": "string",
+          "default": "http://localhost:8080",
+          "description": "CCI backend URL (used when submitting findings)"
+        },
+        "cci.offlineMode": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run CCI in offline mode (do not submit to backend)"
+        },
+        "cci.ignorePatterns": {
+          "type": "array",
+          "default": ["**/node_modules/**","**/.git/**","**/dist/**","**/.venv/**","**/venv/**","**/__pycache__/**","**/.mypy_cache/**","**/.pytest_cache/**"],
+          "items": { "type": "string" },
+          "description": "Globs to exclude from CCI scanning"
+        },
+        "cci.maxFiles": {
+          "type": "number",
+          "default": 3000,
+          "description": "Maximum number of files to scan in CCI"
+        },
+        "cci.fileTimeoutMs": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 200,
+          "description": "Per-file read/heuristic timeout in milliseconds"
+        },
+        "cci.batchTimeoutMs": {
+          "type": "number",
+          "default": 30000,
+          "minimum": 1000,
+          "description": "Per-batch timeout in milliseconds"
+        },
+        "cci.heavyHeuristicsDisabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Skip heavy heuristics during per-file pass to avoid stalls"
+        },
+        "cci.concurrency": {
+          "type": "number",
+          "default": 0,
+          "description": "Optional override for scan concurrency (0 = auto)"
+        }
+        ,
+        "audit.directory": {
+          "type": "string",
+          "default": ".audit",
+          "description": "Directory (relative to workspace root) where audit outputs are written"
+        },
+        "ai-auditor.upload.endpoint":   { "type": "string",  "default": "http://localhost:8080/entropy/v1/public-upload", "description": "URL бэкенда" },
+        "ai-auditor.upload.token":      { "type": "string",  "default": "", "markdownDescription": "Bearer-токен/ключ для аплоада (хранится в SecretStorage)" },
+        "ai-auditor.upload.profilesGlobs": { "type": "array", "default": ["**/*profiles*.json*", "**/*profiles*.jsonl*"], "items": { "type": "string" }, "description": "Где искать профили" },
+        "ai-auditor.upload.findingsGlobs": { "type": "array", "default": ["**/findings*.json*", "**/findings*.jsonl*"],   "items": { "type": "string" }, "description": "Где искать файндинги" },
+        "ai-auditor.upload.maxInputMB": { "type": "number", "default": 200, "description": "Макс. суммарный размер исходников до сжатия" },
+        "ai-auditor.upload.useGzip":    { "type": "boolean", "default": true, "description": "Gzip для NDJSON" },
+        "ai-auditor.upload.chunked":    { "type": "boolean", "default": false, "description": "Включить многочастный аплоад, если сервер поддерживает" }
+      }
+    }
+  },
+  "activationEvents": [
+    "onCommand:aiAuditor.ahkInstall",
+    "onCommand:aiAuditor.ahkInstallPanel",
+    "onCommand:aiAuditor.scanPfPWorkspace",
+    "onCommand:aiAuditor.exportPfpProfiles",
+    "onCommand:aiAuditor.scanCCIWorkspace",
+    "onCommand:aiAuditor.analyze",
+    "onCommand:aiAuditor.grabNow",
+    "onCommand:aiAuditor.cancelAnalysis",
+    "onCommand:aiAuditor.repoStructureV2",
+    "onCommand:aiAuditor.repoStructureV1",
+    "onCommand:aiAuditor.uploadRawFeatures",
+    "onCommand:aiAuditor.uploadDryRun",
+    "onCommand:aiAuditor.setUploadToken",
+    "onCommand:aiAuditor.clearUploadToken",
+    "onCommand:aiAuditor.buildCombinedReport",
+    "onCommand:aiAuditor.simulateUploadArchive",
+    "onCommand:aiAuditor.simulateNzip"
+  ],
+  "dependencies": {
+    "fast-glob": "^3.3.2",
+    "ignore": "^5.3.1",
+    "repomix": "^1.4.0",
+    "yazl": "^2.5.1",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "@types/node": "^18.0.0",
+    "@types/vscode": "^1.70.0"
+  },
+  "files": [
+    "out/**/*",
+    "package.json",
+    "scripts/**/*",
+    "helper/**/*",
+    "assets/**/*",
+    "node_modules/**",
+    "vendor/**/*"
+  ]
+  ,
+  "bundledDependencies": [
+    "repomix",
+    "fast-glob",
+    "ignore",
+    "yazl",
+    "uuid"
+  ]
+}
+
+
+

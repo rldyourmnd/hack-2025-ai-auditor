@@ -1,0 +1,31 @@
+FROM python:3.11-slim
+
+ENV PYTHONUNBUFFERED=1
+
+WORKDIR /app
+
+COPY requirements.txt ./requirements.txt
+# Install system build deps needed to compile some Python packages (asyncpg, psycopg, etc.)
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+       build-essential \
+       libpq-dev \
+       gcc \
+       python3-dev \
+       libffi-dev \
+       curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Upgrade packaging tools and install Python deps
+RUN pip install --upgrade pip setuptools wheel
+RUN pip install --no-cache-dir -r requirements.txt
+
+# copy project files into container working dir
+COPY . .
+
+# Use module path that matches package layout inside the container (backend_proxy.app.factory)
+ENV PYTHONPATH="/app"
+# Use the local `app` package inside the project root
+CMD ["uvicorn", "app.factory:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
+
+

@@ -1,0 +1,83 @@
+{
+  "manifest_version": 3,
+  "name": "Prompt Audit - Curestry",
+  "description": "Анализируйте подсказки перед отправкой — обнаружение PII, длинных запросов и простых проблем локально и быстро.",
+  "version": "0.1.0",
+  "icons": {
+    "16": "public/icons/icon16.svg",
+    "48": "public/icons/icon48.svg",
+    "128": "public/icons/icon128.svg"
+  },
+  "action": {
+    "default_icon": { "16": "public/icons/icon16.svg", "48": "public/icons/icon48.svg", "128": "public/icons/icon128.svg" },
+    "default_popup": "public/popup.html"
+  },
+  "author": "Curestry",
+  "options_page": "public/options.html",
+  "permissions": ["storage", "scripting"],
+  "host_permissions": [
+    "http://localhost:8000/*",
+    "http://127.0.0.1:8000/*",
+    "http://localhost:8002/*",
+    "http://localhost:8002/*",
+    "http://localhost:8001/*",
+    "http://127.0.0.1:8001/*",
+    "http://127.0.0.1:8002/*",
+    "https://chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://api.openai.com/*",
+    "https://claude.ai/*",
+    "https://grok.com/*",
+    "https://gemini.google.com/*",
+    "https://chat.deepseek.com/*",
+    "https://chat.qwen.ai/*",
+    "https://www.perplexity.ai/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "dist/assets/*",
+        "public/page-inject.js"
+      ],
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://grok.com/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://chat.qwen.ai/*",
+        "https://www.perplexity.ai/*"
+      ]
+    }
+  ],
+  "content_scripts": [
+    {
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://claude.ai/*",
+        "https://grok.com/*",
+        "https://gemini.google.com/*",
+        "https://chat.deepseek.com/*",
+        "https://chat.qwen.ai/*",
+        "https://www.perplexity.ai/*"
+      ],
+      "js": ["dist/src/content.js"],
+      "css": ["public/styles.css"],
+      "run_at": "document_start"
+    }
+  ],
+  "background": { "service_worker": "dist/src/background.js", "type": "module" },
+  "commands": {
+    "run-audit": {
+      "suggested_key": {
+        "default": "Alt+A"
+      },
+      "description": "Run AI audit"
+    }
+  }
+}
+
+
+

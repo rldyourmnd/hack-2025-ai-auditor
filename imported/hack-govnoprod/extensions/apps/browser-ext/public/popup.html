@@ -1,0 +1,77 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>AI Auditor</title>
+    <style>
+      body { font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; margin: 12px; min-width: 260px; }
+      h3 { margin: 0 0 8px; font-size: 14px; }
+      ul { margin: 8px 0 0; padding-left: 16px; }
+      li { font-size: 12px; margin: 4px 0; }
+      #summary { font-size: 12px; color: #333; }
+      button { margin-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <!-- Removed Last analysis and Input preview per user request -->
+    <div id="statusLine" style="font-size:12px;color:#333;margin-top:6px">Mode: —</div>
+    <h3 style="margin-top:12px;font-size:13px">Backend</h3>
+    <div style="font-size:12px;margin-bottom:6px">Mode</div>
+    <select id="mode" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px">
+      <option value="mock">Offline (local)</option>
+      <option value="remote">Remote (backend)</option>
+      <option value="openai">OpenAI (direct)</option>
+    </select>
+    <!-- Dynamic sections below switch based on Mode -->
+    <div id="openaiSection" style="display:none">
+      <div style="font-size:12px;margin:6px 0 6px">OpenAI model</div>
+      <select id="modelSelect" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px">
+        <option value="gpt-5-nano">gpt-5-nano</option>
+      </select>
+      <div style="font-size:12px;margin:6px 0 6px">OpenAI API key</div>
+      <input id="apiKey" type="password" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px" placeholder="sk-..." />
+    </div>
+
+    <div id="backendSection" style="display:none">
+      <div style="font-size:12px;margin-bottom:6px;margin-top:8px">API base URL</div>
+      <input id="apiBase" type="text" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px" placeholder="http://127.0.0.1:8000" />
+      <div style="display:flex;gap:8px;margin-top:8px">
+        <div style="flex:1">
+          <div style="font-size:12px;margin:6px 0 6px">Username (optional)</div>
+          <input id="backendUser" type="text" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px" placeholder="user" />
+        </div>
+        <div style="flex:1">
+          <div style="font-size:12px;margin:6px 0 6px">Password (optional)</div>
+          <input id="backendPass" type="password" style="width:100%;padding:6px;border:1px solid #ddd;border-radius:6px;font-size:12px" placeholder="••••••" />
+        </div>
+      </div>
+    </div>
+    <!-- Action buttons moved to the bottom -->
+    <h3 style="margin-top:12px;font-size:13px">Behavior</h3>
+    <label style="display:flex;align-items:center;gap:8px"><input id="piiGuard" type="checkbox" /> <span>PII guard (masking)</span></label>
+    <label style="display:flex;align-items:center;gap:8px"><input id="blockHigh" type="checkbox" /> <span>Block sending on High risk</span></label>
+    <label style="display:flex;align-items:center;gap:8px"><input id="inlineHints" type="checkbox" /> <span>Enable inline hints</span></label>
+
+    <h3 style="margin-top:12px;font-size:13px">Sites</h3>
+    <div style="font-size:12px;margin-bottom:6px">Enable the extension on:</div>
+    <div id="siteList" style="display:flex;flex-direction:column;gap:6px">
+      <label><input type="checkbox" value="chatgpt" /> ChatGPT</label>
+      <label><input type="checkbox" value="claude" /> Claude</label>
+      <label><input type="checkbox" value="grok" /> Grok</label>
+      <label><input type="checkbox" value="gemini" /> Gemini</label>
+      <label><input type="checkbox" value="deepseek" /> DeepSeek</label>
+      <label><input type="checkbox" value="qwen" /> Qwen</label>
+      <label><input type="checkbox" value="perplexity" /> Perplexity</label>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:12px;align-items:center;justify-content:space-between">
+      <div id="healthStatus" style="font-size:12px;color:#555;min-height:18px"></div>
+      <div style="display:flex;gap:8px">
+        <button id="saveConfig">Save</button>
+        <button id="checkHealth">Check health</button>
+      </div>
+    </div>
+    <script type="module" src="./popup.js"></script>
+  </body>
+</html>
+
+

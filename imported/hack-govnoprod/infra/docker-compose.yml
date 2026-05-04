@@ -1,0 +1,133 @@
+services:
+  api:
+    build:
+      context: ../backend
+      dockerfile: ../infra/Dockerfile.api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - ENV=${ENV:-production}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL_CHEAP=${OPENAI_MODEL_CHEAP}
+      - OPENAI_MODEL_STANDARD=${OPENAI_MODEL_STANDARD}
+      - OPENAI_MODEL_PREMIUM=${OPENAI_MODEL_PREMIUM}
+      - ENTROPY_N=${ENTROPY_N:-8}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  web:
+    build:
+      context: ../
+      dockerfile: ./infra/Dockerfile.frontend
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      # Frontend talks to backend_proxy for API calls
+      - NEXT_PUBLIC_API_BASE=${NEXT_PUBLIC_API_BASE:-http://localhost:8002}
+      - NODE_ENV=production
+      - NEXT_TELEMETRY_DISABLED=1
+    volumes:
+      # Mount .audit directory for dashboard data access
+      - "../.audit:/app/.audit:ro"
+    depends_on:
+      api:
+        condition: service_healthy
+      backend_proxy:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      web:
+        condition: service_healthy
+      api:
+        condition: service_healthy
+    restart: unless-stopped
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5431:5432"  # host 5431 -> container 5432 (host access for DBeaver)
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-curestry}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-secure_password}
+      - POSTGRES_DB=${POSTGRES_DB:-curestry}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-curestry}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    ports:
+       - "6380:6379"  # Internal access only for production
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+  # backend_proxy service for local development
+  backend_proxy:
+    build:
+      context: ../backend_proxy
+      dockerfile: ../infra/Dockerfile.backend_proxy
+    ports:
+      - "8002:8000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=${DATABASE_URL}
+      - REDIS_URL=${REDIS_URL}
+      - ENV=${ENV:-development}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - BACKEND_API_URL=http://api:8000
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  postgres_data:
+  redis_data:

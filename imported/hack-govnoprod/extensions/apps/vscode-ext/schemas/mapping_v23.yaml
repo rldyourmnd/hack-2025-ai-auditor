@@ -1,0 +1,125 @@
+# mapping_v23: карта битов, плоскостей и правил HPC для HAF-PFP v2.3
+# Формат (упрощённый):
+# planes:
+#   C0:
+#     - path_services: 0
+#     - path_apps: 1
+# ...
+# hpc_rules: список правил в виде: name: { bit: N, expr: [operands], type: xor|and }
+
+planes:
+  C0:
+    path_services: 0
+    path_apps: 1
+    path_api: 2
+    path_domain: 3
+    path_handlers: 4
+    path_cli: 5
+    path_scripts: 6
+    path_tests_unit: 7
+    path_migrations: 8
+    path_examples: 9
+    path_notebooks: 10
+
+  C1:
+    typehints_any_present: 0
+    typehints_coverage_ge50: 1
+    pydantic_v1: 2
+    pydantic_v2: 3
+
+  C2:
+    asyncio: 0
+    http_requests_sync: 1
+    httpx_async: 2
+    sqlalchemy_asyncsession_used: 3
+    sqlmodel_exec_used: 4
+    os_path_used: 5
+    pathlib_used: 6
+
+  C3:
+    logging_used: 0
+    print_used_for_logs: 1
+    yaml_load_unsafe: 2
+    pickle_or_marshal: 3
+
+enums: {}
+
+hpc_rules:
+  - name: asyncio_xor_requests_sync
+    bit: 0
+    type: xor
+    operands: [asyncio, http_requests_sync]
+
+  - name: asyncio_xor_time_sleep_many
+    bit: 1
+    type: xor
+    operands: [asyncio, time_sleep_many]
+
+  - name: tz_aware_xor_naive
+    bit: 2
+    type: xor
+    operands: [datetime_tz_aware, datetime_naive]
+
+  - name: pathlib_xor_os_path
+    bit: 3
+    type: xor
+    operands: [pathlib_used, os_path_used]
+
+  - name: logging_xor_print
+    bit: 4
+    type: xor
+    operands: [logging_used, print_used_for_logs]
+
+  - name: pyd_v2_xor_v1
+    bit: 5
+    type: xor
+    operands: [pydantic_v2, pydantic_v1]
+
+  - name: http_calls_no_timeout
+    bit: 6
+    type: xor
+    operands: [http_calls_present, http_explicit_timeout]
+
+  - name: sqlmodel_vs_sa_async
+    bit: 7
+    type: xor
+    operands: [sqlmodel_exec_used, sqlalchemy_asyncsession_used]
+
+  - name: yaml_load_unsafe_policy
+    bit: 8
+    type: xor
+    operands: [yaml_load_unsafe, policy_yaml_safe_only]
+
+  - name: pickle_policy_conflict
+    bit: 9
+    type: xor
+    operands: [pickle_or_marshal, policy_no_pickle]
+
+  - name: except_bare_vs_policy
+    bit: 10
+    type: xor
+    operands: [except_bare, policy_no_bare_except]
+
+  - name: relative_imports_vs_absolute_policy
+    bit: 11
+    type: xor
+    operands: [relative_imports_heavy, policy_absolute_imports]
+
+  - name: cfg_ns_fp16_vs_repo
+    bit: 12
+    type: xor
+    operands: [cfg_ns_fp16, repo_cfg_ns_fp16]
+
+  - name: runtime_pip_install_vs_policy_quality
+    bit: 13
+    type: xor
+    operands: [runtime_pip_install, policy_quality_strict]
+
+  - name: platform_branching_vs_opentelemetry
+    bit: 14
+    type: xor
+    operands: [platform_branching, opentelemetry_used]
+
+  # bits 15..63 reserved for project specific rules
+
+

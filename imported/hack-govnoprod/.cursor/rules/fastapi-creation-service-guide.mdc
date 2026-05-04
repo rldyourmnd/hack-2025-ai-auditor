@@ -1,0 +1,216 @@
+---
+description: "FastAPI microservices code style: architecture, API, testing, security, observability, and CI. Applies to all Python microservices in the repo."
+alwaysApply: true
+globs:
+  - "**/backend*/**/*.py"
+  - "**/app/**/*.py"
+  - "**/alembic/**/*.py"
+  - "**/pyproject.toml"
+  - "infra/**/*Dockerfile*"
+  - "infra/**/*.{yml,yaml}"
+  - ".pre-commit-config.yaml"
+  - "Makefile"
+---
+
+# FastAPI Microservices — Code & API Style
+
+## 1) Service Layout & Boundaries
+
+- One service = one bounded context. No cross-imports between services.
+- Canonical layout (example):
+
+```text
+<service>/
+  app/
+  api/routers/   # routing & I/O schemas only
+  core/          # config, app factory, DI, lifespans
+  services/      # domain/application logic (stateless, pure-pref)
+  models/
+  orm/           # SQLAlchemy/SQLModel entities
+  schemas/       # Pydantic v2 DTOs (input/output)
+  db/            # session, repositories, migrations helpers
+  telemetry/     # logging, metrics, tracing
+  security/      # auth(z), tokens, permissions
+  main.py        # create_app() only
+  alembic/       # migrations
+  pyproject.toml
+  README.md
+```
+
+- Single responsibility per file. Limits: file ≤ 500 LOC, function/class ≤ 60 LOC.
+
+## 2) App Factory, Config, DI
+
+- Use only an app factory pattern:
+
+```py
+def create_app(settings: Settings | None = None) -> FastAPI:
+    ...
+```
+
+- Configuration via `pydantic-settings`; no globals. Pass configuration through DI (`Depends`) or a provider.
+
+- Lifecycles: use FastAPI `lifespan` for starting/stopping DB pools, clients, and metrics.
+
+- Health/readiness endpoints: `/healthz` (liveness) and `/readyz` (readiness).
+
+## 3) Python & Type System
+
+- Pydantic v2 for all inputs/outputs. Do not use `dict`/`Any` in public signatures.
+
+- Use full type hints and `from __future__ import annotations` everywhere.
+
+- Run `mypy` in strict mode with settings such as `disallow_any_generics`, `no_implicit_optional`, `warn_unused_ignores`, and `warn_redundant_casts`.
+
+- Prefer functional/declarative style; use classes only for ORM models, DTOs, or infrastructure where appropriate.
+
+## 4) API Design (REST + OpenAPI)
+
+- All paths are versioned: `/api/v1/...`. Max 2 path levels.
+
+- Use plural nouns: `/users`, `/projects/{id}/items`.
+
+- Semantics:
+  - `GET` is safe; pagination: `limit` (1–1000, default 50) + `offset` or `cursor`.
+  - `POST` for create → return `201` + `Location` header.
+  - Prefer `PATCH` for partial updates.
+  - `DELETE` should perform physical deletion only when explicitly required and authorized.
+
+- Use `snake_case` for fields and query parameters. Times must be ISO-8601 UTC (Z) and timezone-aware.
+
+- Support `Idempotency-Key` for unsafe operations where applicable.
+
+- Filtering/sorting: only allow whitelisted fields; stabilize sorting with `id` as a tie-breaker.
+
+- Responses: choose either direct resource objects or a consistent envelope (e.g. `{data, meta}`) — be uniform across the service.
+
+- Errors: return structured errors `{error_code, message, details}`; use `4xx` for client errors and `5xx` for server errors.
+
+- Documentation: add `summary`, `description`, `tags`, and examples for every response code; validate OpenAPI schema in CI.
+
+## 5) Errors & Resilience
+
+- Use guard clauses and early returns.
+
+- Represent domain/user errors as controlled exceptions mapped to `HTTPException(status, detail={...})`.
+
+- Log technical errors but do not expose internals in responses.
+
+- For external calls (HTTP/DB): set sensible timeouts (connect/read), use retries with exponential backoff + jitter, and apply a circuit-breaker for fragile dependencies.
+
+## 6) Data, DB & Migrations
+
+- Use SQLAlchemy or SQLModel; one DB session per request; avoid global sessions.
+
+- Transactions as unit-of-work at the use-case level; do not stretch transactions across layers.
+
+- Prevent N+1 queries: use `selectinload`/`joinedload`, batching, or window/CTE queries when needed.
+
+- Always define indexes and unique constraints; name foreign keys `<table>_id`.
+
+- Migrations via Alembic: auto-generate then review; include rollback tests.
+
+- Audit fields: `id` (uuid4), `created_at`, `updated_at` (UTC, tz-aware).
+
+## 7) Security
+
+- Auth: OAuth2 / JWT Bearer; enforce roles/permissions at router and service levels.
+
+- CORS: use a minimal allowlist; never `*` in production.
+
+- Secrets: load only from env or a secret manager; never commit keys in code or config.
+
+- Strict input validation with Pydantic Strict types; enforce request size limits.
+
+- Prevent SSRF/remote host abuse: restrict outbound HTTP to a whitelist of domains and apply timeouts.
+
+- Logs/metrics must not contain PII, secrets, or raw prompts.
+
+## 8) Observability
+
+- Logging: structured JSON lines with fields: `ts`, `level`, `service`, `module`, `message`, `trace_id`, `user_id?`, `extra`.
+
+- Tracing: use OpenTelemetry for HTTP, DB, and external clients; propagate `trace_id` via headers (e.g. `traceparent` / `x-request-id`).
+
+- Metrics: expose Prometheus metrics at `/metrics`; follow RED/USE patterns; include latency histograms and DB pool metrics.
+
+- Correlation: accept `X-Request-ID` and generate one if absent; return it in responses.
+
+## 9) Performance & Concurrency
+
+- Prefer async I/O only (async HTTPX, async DB drivers); move CPU-heavy tasks to a queue (Celery/RQ) or bounded background workers.
+
+- Reuse connection pools for DB and HTTP clients; enforce parallelism limits.
+
+- Use caching (Redis or in-memory) for expensive but non-sensitive computations.
+
+- Run blocking CPU-bound work in thread/process pools with watchdogs.
+
+## 10) Testing Strategy
+
+- Test pyramid: many unit tests → reasonable integration tests → targeted e2e/smoke tests.
+
+- Unit tests: focus on `services`, `schemas`, and pure logic without DB/network.
+
+- Integration tests: use a real DB (transactional rollback) and tools like `pytest-httpx` or `testcontainers` for external services.
+
+- Contract testing: use Schemathesis/Prism against the OpenAPI spec.
+
+- E2E: smoke tests for main flows.
+
+- Coverage targets: core ≥ 90%, other code ≥ 80%. Do not use real secrets or production data in tests.
+
+## 11) Dependencies & Tooling
+
+- Manage dependencies in `pyproject.toml` with a lockfile. Prefer PDM or poetry (pinned versions); do not allow unfrozen production dependencies.
+
+- License policy: allow MIT/Apache-2.0/BSD/PSF; forbid GPL/AGPL dependencies.
+
+- Pre-commit hooks: `black`, `isort`, `ruff`, `mypy`, `bandit`, `sqlfluff`, `yamllint`, `hadolint`.
+
+- Makefile as single entry point:
+
+```make
+lint: ; # runs formatters/linters
+typecheck: ; # run mypy
+test: ; # run pytest
+security: ; # run bandit, snyk if configured
+docker-build: ; # build container image
+ci: ; # run full CI pipeline
+```
+
+## 12) HTTP Clients & Integrations
+
+- Use `httpx` (async) with timeouts, retries (backoff+jitter), circuit-breaker, a clear `User-Agent`, and `X-Request-ID` header propagation.
+
+- Map external responses to internal DTOs; do not leak external formats into the domain.
+
+- Support idempotent writes if partners permit; deduplicate by keys when possible.
+
+## 13) Documentation & Anchors
+
+- Document public code, schemas, and routes in Markdown (English). One topic per file.
+
+- Place semantic anchors next to logical blocks, e.g. `@anchor:...`, for linking and review tooling. Anchors must be unique and consistent.
+
+- Code changes must update docs/anchors in the same PR.
+
+## 14) Git Workflow & PR Policy
+
+- One commit = one atomic logical change. Commit message format: `<scope>: <desc>` (≤ 72 chars).
+
+- Branch naming: `feature/`, `fix/`, `chore/`, `release/`.
+
+- PR limits: ≤ 500 lines changed and ≤ 10 files when practical; squash-merge.
+
+- Merge only after green checks: linters, typecheck, tests, OpenAPI/anchors validations.
+
+## 15) Non-negotiables
+
+- No side effects at import-time.
+
+- No hidden magical DI or singletons; dependencies must be explicit.
+
+- No undocumented production feature flags.
+
+- Remove dead code; experiments must live in `tracking/` and be removed or promoted after review.

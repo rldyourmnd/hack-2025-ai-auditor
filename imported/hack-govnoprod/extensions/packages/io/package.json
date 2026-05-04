@@ -1,0 +1,16 @@
+{
+  "name": "@ai-auditor/io",
+  "version": "0.1.0",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "build": "tsc -p ."
+  },
+  "dependencies": {
+    "fast-glob": "^3.3.3",
+    "stream-json": "^1.7.3",
+    "undici": "^6.0.0",
+    "uuid": "^9.0.0",
+    "yazl": "^2.5.1"
+  }
+}

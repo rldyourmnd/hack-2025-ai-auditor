@@ -1,0 +1,47 @@
+erDiagram
+    ORGANIZATION {
+        UUID id PK
+        TEXT name
+        TEXT slug
+    }
+    USERS {
+        UUID id PK
+        TEXT email
+        TEXT display_name
+    }
+    PROJECTS {
+        UUID id PK
+        UUID organization_id FK
+        TEXT name
+    }
+    PROMPTS {
+        UUID id PK
+        UUID project_id FK
+        TEXT title
+    }
+    REPO {
+        UUID id PK
+        UUID project_id FK
+        TEXT provider
+        TEXT url
+    }
+    REPO_FILE {
+        UUID id PK
+        UUID repo_id FK
+        TEXT path
+    }
+    ANALYSIS_RUN {
+        UUID id PK
+        UUID project_id FK
+        UUID prompt_id FK
+        TEXT status
+    }
+
+    ORGANIZATION ||--o{ PROJECTS : has
+    PROJECTS ||--o{ PROMPTS : contains
+    USERS ||--o{ PROMPTS : creates
+    PROJECTS ||--o{ REPO : has
+    REPO ||--o{ REPO_FILE : contains
+    PROMPTS ||--o{ ANALYSIS_RUN : analyzed_by
+
+
