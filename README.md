@@ -1,5 +1,9 @@
 # Curestry - AI Prompt Analysis & Optimization Platform
 
+> **DEPRECATED.** This repository is archived and no longer maintained.
+> It is kept read-only for reference; its GDS anchor records
+> `lifecycle: archived` under `portfolio:archived-projects`.
+
 An intelligent platform for analyzing, validating, and optimizing prompts for Large Language Models (LLMs).
 
 ## Quick Start
