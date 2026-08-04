@@ -13,7 +13,7 @@ concurrency:
 jobs:
   backend:
     name: backend (python)
-    uses: NDDev-it-com/ci-workflows/.github/workflows/python-ci.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    uses: NDDev-it-com/ci-workflows/.github/workflows/python-ci.yml@ca538d59aef41c1bb03c3669366c368128d5af88
     with:
       python_version: '3.11'
       working_directory: backend
@@ -22,31 +22,31 @@ jobs:
 
   frontend:
     name: frontend (node)
-    uses: NDDev-it-com/ci-workflows/.github/workflows/node-ci.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    uses: NDDev-it-com/ci-workflows/.github/workflows/node-ci.yml@ca538d59aef41c1bb03c3669366c368128d5af88
     with:
       working_directory: frontend
       install_command: 'npm ci --no-audit'
       test_command: 'npm run lint && npm run build'
 
   codeql:
-    uses: NDDev-it-com/ci-workflows/.github/workflows/public-codeql.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    uses: NDDev-it-com/ci-workflows/.github/workflows/public-codeql.yml@ca538d59aef41c1bb03c3669366c368128d5af88
     with:
       languages: '["python","javascript","actions"]'
 
   scorecard:
-    uses: NDDev-it-com/ci-workflows/.github/workflows/public-scorecard.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    uses: NDDev-it-com/ci-workflows/.github/workflows/public-scorecard.yml@ca538d59aef41c1bb03c3669366c368128d5af88
 
   dependency-review:
-    uses: NDDev-it-com/ci-workflows/.github/workflows/public-dependency-review.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    uses: NDDev-it-com/ci-workflows/.github/workflows/public-dependency-review.yml@ca538d59aef41c1bb03c3669366c368128d5af88
 
   zizmor:
-    uses: NDDev-it-com/ci-workflows/.github/workflows/zizmor-sarif.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    uses: NDDev-it-com/ci-workflows/.github/workflows/zizmor-sarif.yml@ca538d59aef41c1bb03c3669366c368128d5af88
 
   secret-scan:
-    uses: NDDev-it-com/ci-workflows/.github/workflows/secret-scan.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    uses: NDDev-it-com/ci-workflows/.github/workflows/secret-scan.yml@ca538d59aef41c1bb03c3669366c368128d5af88
 
   actionlint:
-    uses: NDDev-it-com/ci-workflows/.github/workflows/actionlint.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    uses: NDDev-it-com/ci-workflows/.github/workflows/actionlint.yml@ca538d59aef41c1bb03c3669366c368128d5af88
 
   semgrep:
-    uses: NDDev-it-com/ci-workflows/.github/workflows/semgrep-ci.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    uses: NDDev-it-com/ci-workflows/.github/workflows/semgrep-ci.yml@ca538d59aef41c1bb03c3669366c368128d5af88
