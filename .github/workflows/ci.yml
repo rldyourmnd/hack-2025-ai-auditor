@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions: {}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  backend:
+    name: backend (python)
+    uses: NDDev-it-com/ci-workflows/.github/workflows/python-ci.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    with:
+      python_version: '3.11'
+      working_directory: backend
+      install_command: 'uv pip install --system -r requirements.txt ruff pytest'
+      test_command: 'ruff check . && python -m pytest -q'
+
+  frontend:
+    name: frontend (node)
+    uses: NDDev-it-com/ci-workflows/.github/workflows/node-ci.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    with:
+      working_directory: frontend
+      install_command: 'npm ci --no-audit'
+      test_command: 'npm run lint && npm run build'
+
+  codeql:
+    uses: NDDev-it-com/ci-workflows/.github/workflows/public-codeql.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+    with:
+      languages: '["python","javascript","actions"]'
+
+  scorecard:
+    uses: NDDev-it-com/ci-workflows/.github/workflows/public-scorecard.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+
+  dependency-review:
+    uses: NDDev-it-com/ci-workflows/.github/workflows/public-dependency-review.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+
+  zizmor:
+    uses: NDDev-it-com/ci-workflows/.github/workflows/zizmor-sarif.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+
+  secret-scan:
+    uses: NDDev-it-com/ci-workflows/.github/workflows/secret-scan.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+
+  actionlint:
+    uses: NDDev-it-com/ci-workflows/.github/workflows/actionlint.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
+
+  semgrep:
+    uses: NDDev-it-com/ci-workflows/.github/workflows/semgrep-ci.yml@c26c516559c01166a35b852c0d2a925cc1bd8db8
