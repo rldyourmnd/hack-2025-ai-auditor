@@ -1,86 +1,123 @@
-name: CI
+name: ci
 
 on:
+  pull_request:
   push:
     branches: [main]
-  pull_request:
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: read
 
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  # Obsolete pull-request heads are cancelled; a running main validation always completes.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   backend:
-    permissions:
-      contents: read
-    name: backend (python)
-    uses: NDDev-Technocracy-Archive/ci-workflows-20261014/.github/workflows/python-ci.yml@93eeb2a65e98a29e9dbff7909f67c6419abff046
-    with:
-      uv_version: "0.12.23"
-      python_version: '3.11'
-      working_directory: backend
-      install_command: 'uv pip install -r requirements.txt ruff pytest'
-      test_command: "python -m ruff check . && python -m pytest -q"
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          version: '0.13.5'
+          python-version: '3.11'
+          enable-cache: 'false'
+          activate-environment: 'true'
+          working-directory: backend
+      - name: Ruff and pytest
+        run: |
+          uv pip install -r requirements.txt ruff pytest
+          python -m ruff check .
+          python -m pytest -q
 
   frontend:
-    permissions:
-      contents: read
-    name: frontend (node)
-    uses: NDDev-Technocracy-Archive/ci-workflows-20261014/.github/workflows/node-ci.yml@93eeb2a65e98a29e9dbff7909f67c6419abff046
-    with:
-      package_manager: npm
-      node_version: "24.21.0"
-      npm_version: "11.19.0"
-      working_directory: frontend
-      install_command: 'npm ci --no-audit'
-      test_command: "npm run lint && npm run build"
-
-  codeql:
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    uses: NDDev-Technocracy-Archive/ci-workflows-20261014/.github/workflows/public-codeql.yml@93eeb2a65e98a29e9dbff7909f67c6419abff046
-    with:
-      languages: '["python","javascript","actions"]'
-
-  scorecard:
-    if: github.event_name == 'push' && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
-    permissions:
-      security-events: write
-      id-token: write
-      contents: read
-      actions: read
-    uses: NDDev-Technocracy-Archive/ci-workflows-20261014/.github/workflows/public-scorecard.yml@93eeb2a65e98a29e9dbff7909f67c6419abff046
-
-  dependency-review:
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: read
-      pull-requests: write
-    uses: NDDev-Technocracy-Archive/ci-workflows-20261014/.github/workflows/public-dependency-review.yml@93eeb2a65e98a29e9dbff7909f67c6419abff046
-
-  zizmor:
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    uses: NDDev-Technocracy-Archive/ci-workflows-20261014/.github/workflows/zizmor-sarif.yml@93eeb2a65e98a29e9dbff7909f67c6419abff046
-
-  secret-scan:
-    permissions:
-      contents: read
-    uses: NDDev-Technocracy-Archive/ci-workflows-20261014/.github/workflows/secret-scan.yml@93eeb2a65e98a29e9dbff7909f67c6419abff046
-
-  actionlint:
-    permissions:
-      contents: read
-    uses: NDDev-Technocracy-Archive/ci-workflows-20261014/.github/workflows/actionlint.yml@93eeb2a65e98a29e9dbff7909f67c6419abff046
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24.21.0'
+          package-manager-cache: false
+      - uses: NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows/.github/actions/hosted-cache@ab62f45b2a3067e5a7425d703f7fd07f1618b72c # nddev-cicd-v0.6.14
+        with:
+          ecosystems: npm
+          working-directory: frontend
+      - name: Lint and build
+        run: |
+          npm ci --no-audit
+          npm run lint
+          npm run build
 
   semgrep:
-    permissions:
-      contents: read
-    uses: NDDev-Technocracy-Archive/ci-workflows-20261014/.github/workflows/semgrep-ci.yml@93eeb2a65e98a29e9dbff7909f67c6419abff046
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
+        with:
+          version: '0.13.5'
+          enable-cache: 'false'
+      - name: Semgrep CI rules
+        run: uvx semgrep@1.182.1 scan --error --metrics off --config p/ci
+
+  dependency-review:
+    if: ${{ github.event_name == 'pull_request' }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
+
+  workflows:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows/.github/actions/tools@ab62f45b2a3067e5a7425d703f7fd07f1618b72c # nddev-cicd-v0.6.14
+        with:
+          capability: security
+      - name: Lint and audit workflows
+        run: |
+          actionlint
+          zizmor --offline --no-progress .github
+      - name: Scan new pull request commits, or the full history on main
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          HEAD: ${{ github.event.pull_request.head.sha }}
+        run: |
+          if [ -n "$BASE" ]; then
+            gitleaks git --no-banner --redact --log-opts="$BASE..$HEAD" .
+          else
+            gitleaks git --no-banner --redact .
+          fi
+
+  gate:
+    needs: [backend, frontend, workflows, semgrep, dependency-review]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows/.github/actions/gate@ab62f45b2a3067e5a7425d703f7fd07f1618b72c # nddev-cicd-v0.6.14
+        with:
+          needs: ${{ toJSON(needs) }}
+          expected: >-
+            {"backend":"success","frontend":"success","workflows":"success","semgrep":"success",
+            "dependency-review":"${{ github.event_name == 'pull_request' && 'success' || 'skipped' }}"}
