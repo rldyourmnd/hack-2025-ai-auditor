@@ -52,10 +52,7 @@ jobs:
         with:
           node-version: '24.21.0'
           package-manager-cache: false
-      - uses: NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows/.github/actions/hosted-cache@c192c6adcf22088abf456635de614d42e8fa3f8d # nddev-cicd-v0.6.20
-        with:
-          ecosystems: npm
-          working-directory: frontend
+      - uses: NDDev-Technocracy-OpenNetwork/nddev-ci/actions/hosted-cache@9fead1382c452a6b791a0a9e464ac6ac66537ac3 # v0.6.51
       - name: Lint and build
         run: |
           npm ci --no-audit
@@ -91,9 +88,20 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows/.github/actions/tools@c192c6adcf22088abf456635de614d42e8fa3f8d # nddev-cicd-v0.6.20
+      - uses: NDDev-Technocracy-OpenNetwork/nddev-ci/actions/hosted-sdk@9fead1382c452a6b791a0a9e464ac6ac66537ac3 # v0.6.51
         with:
-          capability: security
+          tools: zizmor@1.32.0
+      - name: Install actionlint 1.7.12 and gitleaks 8.30.1, checked against their digests
+        run: |
+          set -euo pipefail
+          bin="$HOME/.local/bin"; mkdir -p "$bin"
+          curl -fsSL -o "$RUNNER_TEMP/actionlint.tgz" "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz"
+          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $RUNNER_TEMP/actionlint.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/actionlint.tgz" -C "$bin" "actionlint"
+          curl -fsSL -o "$RUNNER_TEMP/gitleaks.tgz" "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz"
+          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gitleaks.tgz" | sha256sum -c -
+          tar -xzf "$RUNNER_TEMP/gitleaks.tgz" -C "$bin" "gitleaks"
+          echo "$bin" >> "$GITHUB_PATH"
       - name: Lint and audit workflows
         run: |
           actionlint
@@ -115,9 +123,8 @@ jobs:
     runs-on: ubuntu-26.04
     timeout-minutes: 5
     steps:
-      - uses: NDDev-Technocracy-Standarts/std-0004-ci-cd-workflows/.github/actions/gate@c192c6adcf22088abf456635de614d42e8fa3f8d # nddev-cicd-v0.6.20
-        with:
-          needs: ${{ toJSON(needs) }}
-          expected: >-
-            {"backend":"success","frontend":"success","workflows":"success","semgrep":"success",
-            "dependency-review":"${{ github.event_name == 'pull_request' && 'success' || 'skipped' }}"}
+      - name: Every required job ended as expected
+        env:
+          NEEDS: ${{ toJSON(needs) }}
+          EXPECTED: >-
+        run: jq -e --argjson want "$EXPECTED" 'map_values(.result) == $want' <<< "$NEEDS"
