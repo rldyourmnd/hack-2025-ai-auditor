@@ -127,4 +127,6 @@ jobs:
         env:
           NEEDS: ${{ toJSON(needs) }}
           EXPECTED: >-
+            {"backend":"success","frontend":"success","workflows":"success","semgrep":"success",
+            "dependency-review":"${{ github.event_name == 'pull_request' && 'success' || 'skipped' }}"}
         run: jq -e --argjson want "$EXPECTED" 'map_values(.result) == $want' <<< "$NEEDS"
