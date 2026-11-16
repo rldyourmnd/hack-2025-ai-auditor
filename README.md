@@ -101,6 +101,21 @@ Notes:
 - In production behind a reverse proxy, set NEXT_PUBLIC_API_BASE to the external API URL (e.g., https://your.domain/api) and proxy accordingly.
 - Postgres and Redis are internal to the Docker network and are not exposed publicly by default.
 
+## Component maintenance
+
+Select the Python and Node SDKs declared by the check workflow, then run:
+
+```bash
+just setup
+just check
+just test
+just build
+```
+
+`just setup` prepares wheel-only backend dependencies and the frontend lockfile without install scripts. `just check` runs the original backend Ruff and frontend ESLint checks, a read-only TypeScript check from the existing build, and workflow and redacted history checks. It does not import the backend, build the frontend or call an AI provider. `just test` retains the existing backend smoke cases. `just verify` also produces the frontend build.
+
+CI calls these same commands: source checks and smoke cases for a pull request, the full check on main and manual runs. The scheduled security workflow records advisory findings separately. Maintenance does not start the prototype stack, its imported projects or deployment scripts.
+
 ## License
 
 MIT License - see LICENSE file for details.

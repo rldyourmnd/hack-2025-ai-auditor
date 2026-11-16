@@ -2,131 +2,25 @@ name: ci
 
 on:
   pull_request:
+    types: [opened, synchronize, reopened, labeled, edited]
   push:
     branches: [main]
   workflow_dispatch:
 
-permissions:
-  contents: read
-
-concurrency:
-  group: ci-${{ github.event.pull_request.number || github.ref }}
-  # Obsolete pull-request heads are cancelled; a running main validation always completes.
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+permissions: {}
 
 jobs:
-  backend:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 20
-    defaults:
-      run:
-        working-directory: backend
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
-        with:
-          version: '0.13.5'
-          python-version: '3.11'
-          enable-cache: 'false'
-          activate-environment: 'true'
-          working-directory: backend
-      - name: Ruff and pytest
-        run: |
-          uv pip install -r requirements.txt ruff pytest
-          python -m ruff check .
-          python -m pytest -q
-
-  frontend:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 15
-    defaults:
-      run:
-        working-directory: frontend
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
-        with:
-          node-version: '24.21.0'
-          package-manager-cache: false
-      - uses: NDDev-Technocracy-OpenNetwork/nddev-ci/actions/hosted-cache@9fead1382c452a6b791a0a9e464ac6ac66537ac3 # v0.6.51
-      - name: Lint and build
-        run: |
-          npm ci --no-audit
-          npm run lint
-          npm run build
-
-  semgrep:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 15
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-      - uses: astral-sh/setup-uv@07a047e608db84b3d8c06cd9a7c7dcc9c355c18e # v10.3.2
-        with:
-          version: '0.13.5'
-          enable-cache: 'false'
-      - name: Semgrep CI rules
-        run: uvx semgrep@1.182.1 scan --error --metrics off --config p/ci
-
-  dependency-review:
-    if: ${{ github.event_name == 'pull_request' }}
-    runs-on: ubuntu-26.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
-
-  workflows:
-    runs-on: ubuntu-26.04
-    timeout-minutes: 10
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - uses: NDDev-Technocracy-OpenNetwork/nddev-ci/actions/hosted-sdk@9fead1382c452a6b791a0a9e464ac6ac66537ac3 # v0.6.51
-        with:
-          tools: zizmor@1.32.0
-      - name: Install actionlint 1.7.12 and gitleaks 8.30.1, checked against their digests
-        run: |
-          set -euo pipefail
-          bin="$HOME/.local/bin"; mkdir -p "$bin"
-          curl -fsSL -o "$RUNNER_TEMP/actionlint.tgz" "https://github.com/rhysd/actionlint/releases/download/v1.7.12/actionlint_1.7.12_linux_amd64.tar.gz"
-          echo "8aca8db96f1b94770f1b0d72b6dddcb1ebb8123cb3712530b08cc387b349a3d8  $RUNNER_TEMP/actionlint.tgz" | sha256sum -c -
-          tar -xzf "$RUNNER_TEMP/actionlint.tgz" -C "$bin" "actionlint"
-          curl -fsSL -o "$RUNNER_TEMP/gitleaks.tgz" "https://github.com/gitleaks/gitleaks/releases/download/v8.30.1/gitleaks_8.30.1_linux_x64.tar.gz"
-          echo "551f6fc83ea457d62a0d98237cbad105af8d557003051f41f3e7ca7b3f2470eb  $RUNNER_TEMP/gitleaks.tgz" | sha256sum -c -
-          tar -xzf "$RUNNER_TEMP/gitleaks.tgz" -C "$bin" "gitleaks"
-          echo "$bin" >> "$GITHUB_PATH"
-      - name: Lint and audit workflows
-        run: |
-          actionlint
-          zizmor --offline --no-progress .github
-      - name: Scan new pull request commits, or the full history on main
-        env:
-          BASE: ${{ github.event.pull_request.base.sha }}
-          HEAD: ${{ github.event.pull_request.head.sha }}
-        run: |
-          if [ -n "$BASE" ]; then
-            gitleaks git --no-banner --redact --log-opts="$BASE..$HEAD" .
-          else
-            gitleaks git --no-banner --redact .
-          fi
-
-  gate:
-    needs: [backend, frontend, workflows, semgrep, dependency-review]
-    if: ${{ !cancelled() }}
-    runs-on: ubuntu-26.04
-    timeout-minutes: 5
-    steps:
-      - name: Every required job ended as expected
-        env:
-          NEEDS: ${{ toJSON(needs) }}
-          EXPECTED: >-
-            {"backend":"success","frontend":"success","workflows":"success","semgrep":"success",
-            "dependency-review":"${{ github.event_name == 'pull_request' && 'success' || 'skipped' }}"}
-        run: jq -e --argjson want "$EXPECTED" 'map_values(.result) == $want' <<< "$NEEDS"
+  check:
+    uses: NDDev-Technocracy-OpenNetwork/nddev-ci/.github/workflows/check.yml@9fead1382c452a6b791a0a9e464ac6ac66537ac3 # v0.6.51
+    permissions:
+      contents: read
+    with:
+      hosted-runner: ubuntu-26.04
+      timeout-minutes: 45
+      fetch-depth: 0
+      setup: true
+      node-version: "24.21.0"
+      python-version: "3.11"
+      uv-version: "0.13.5"
+      tools: zizmor@1.32.0
+      tool-assets: .github/ci-tools.json
