@@ -6,3 +6,6 @@ packages:
 blockExoticSubdeps: true
 minimumReleaseAge: 10080
 trustPolicy: no-downgrade
+minimumReleaseAgeExclude:
+  # Renovate security update: undici@6.29.1
+  - undici@6.29.1
