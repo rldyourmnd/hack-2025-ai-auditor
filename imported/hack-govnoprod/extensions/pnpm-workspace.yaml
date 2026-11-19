@@ -9,3 +9,5 @@ trustPolicy: no-downgrade
 minimumReleaseAgeExclude:
   # Renovate security update: undici@6.29.1
   - undici@6.29.1
+  # Renovate security update: happy-dom@21.0.0
+  - happy-dom@21.0.0
