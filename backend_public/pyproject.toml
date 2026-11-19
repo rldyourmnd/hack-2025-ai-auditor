@@ -22,7 +22,7 @@ python-multipart = "^0.0.31"
 itsdangerous = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]
-black = "^24.4.2"
+black = "^26.0.0"
 isort = "^5.13.2"
 ruff = "^0.4.8"
 
