@@ -39,8 +39,8 @@ importers:
         specifier: ^1.4.0
         version: 1.4.0
       uuid:
-        specifier: ^11.1.1
-        version: 11.1.1
+        specifier: ^14.0.0
+        version: 14.0.3
       yazl:
         specifier: ^3.0.0
         version: 3.3.1
@@ -100,8 +100,8 @@ importers:
         specifier: ^8.0.0
         version: 8.12.4
       uuid:
-        specifier: ^11.0.0
-        version: 11.1.1
+        specifier: ^14.0.0
+        version: 14.0.3
       yazl:
         specifier: ^3.0.0
         version: 3.3.1
@@ -3053,8 +3053,8 @@ packages:
       punycode: 2.3.1
     dev: false
 
-  /uuid@11.1.1:
-    resolution: {integrity: sha512-vIYxrBCC/N/K+Js3qSN88go7kIfNPssr/hHCesKCQNAjmgvYS2oqr69kIufEG+O4+PfezOH4EbIeHCfFov8ZgQ==}
+  /uuid@14.0.3:
+    resolution: {integrity: sha512-Sc5u1VVln93y1Xnz4R+CunOZc7R9LUcTmhj7Rc7Eg3HVcf7rVn2FOoa812fe0W8p3jD7xeoGSYbfqCGGH2B6xw==}
     hasBin: true
     dev: false
 
