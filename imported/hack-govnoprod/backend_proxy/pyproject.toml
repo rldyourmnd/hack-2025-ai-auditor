@@ -6,7 +6,7 @@ authors = ["dev <dev@example.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.11"
-fastapi = "0.104.1"
+fastapi = "0.109.1"
 sqlmodel = "1.0.3"
 SQLAlchemy = {version = "2.1.0", extras = ["asyncio"]}
 asyncpg = "0.27.0"
