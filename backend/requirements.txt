@@ -7,7 +7,7 @@ sqlmodel==0.0.14
 alembic==1.13.1
 psycopg[binary]==3.1.15
 asyncpg==0.29.0
-redis==5.0.1
+redis==8.1.0
 openai==3.52.0
 python-multipart==0.0.31
 python-jose[cryptography]==3.3.0
