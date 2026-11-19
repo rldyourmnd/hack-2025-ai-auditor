@@ -10,7 +10,7 @@ fastapi = "0.109.1"
 sqlmodel = "1.0.3"
 SQLAlchemy = {version = "2.1.0", extras = ["asyncio"]}
 asyncpg = "0.27.0"
-pydantic-settings = "1.2.0"
+pydantic-settings = "2.16.3"
 alembic = "1.11.1"
 
 [tool.poetry.dev-dependencies]
