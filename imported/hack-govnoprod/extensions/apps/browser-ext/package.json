@@ -9,7 +9,7 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.1.4",
-    "rimraf": "^5.0.5",
+    "rimraf": "^6.0.0",
     "typescript": "^5.9.2",
     "vite": "^8.0.0"
   }
