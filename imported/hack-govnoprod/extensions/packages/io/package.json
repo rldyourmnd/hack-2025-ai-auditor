@@ -9,7 +9,7 @@
   "dependencies": {
     "fast-glob": "^3.3.3",
     "stream-json": "^1.7.3",
-    "undici": "^6.0.0",
+    "undici": "^8.0.0",
     "uuid": "^9.0.0",
     "yazl": "^2.5.1"
   }
