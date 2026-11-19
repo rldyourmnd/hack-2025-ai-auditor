@@ -6,3 +6,6 @@ packages:
 blockExoticSubdeps: true
 minimumReleaseAge: 10080
 trustPolicy: no-downgrade
+minimumReleaseAgeExclude:
+  # Renovate security update: happy-dom@21.0.0
+  - happy-dom@21.0.0
