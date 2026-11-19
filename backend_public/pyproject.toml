@@ -23,7 +23,7 @@ itsdangerous = "^2.2.0"
 
 [tool.poetry.group.dev.dependencies]
 black = "^26.0.0"
-isort = "^5.13.2"
+isort = "^9.0.0"
 ruff = "^0.4.8"
 
 [build-system]
