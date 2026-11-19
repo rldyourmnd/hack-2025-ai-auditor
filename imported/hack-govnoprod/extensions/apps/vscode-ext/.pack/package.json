@@ -219,7 +219,7 @@
     "fast-glob": "^3.3.2",
     "ignore": "^7.0.0",
     "repomix": "^1.4.0",
-    "yazl": "^2.5.1",
+    "yazl": "^3.0.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
