@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Plus, Edit, Trash2, Database, Filter } from 'lucide-react';
@@ -16,46 +16,42 @@ interface Prompt {
   created_at: string;
 }
 
+const prompts: Prompt[] = [
+  {
+    id: '1',
+    name: 'Python Coding Assistant',
+    description: 'A comprehensive prompt for Python code generation and debugging',
+    content: 'You are an expert Python developer. Help users write clean, efficient Python code...',
+    format_type: 'text',
+    language: 'en',
+    tags: ['python', 'coding', 'assistant'],
+    created_at: '2024-01-15T10:30:00Z',
+  },
+  {
+    id: '2',
+    name: 'JavaScript Helper',
+    description: 'Frontend development assistance with JavaScript and React',
+    content: 'You are a frontend development expert specializing in JavaScript and React...',
+    format_type: 'markdown',
+    language: 'en',
+    tags: ['javascript', 'web', 'frontend', 'react'],
+    created_at: '2024-01-14T15:45:00Z',
+  },
+  {
+    id: '3',
+    name: 'Article Writing Template',
+    description: 'Template for generating high-quality technical articles',
+    content: 'Write a comprehensive technical article about [TOPIC]. Include introduction...',
+    format_type: 'xml',
+    language: 'en',
+    tags: ['writing', 'content', 'technical'],
+    created_at: '2024-01-13T09:20:00Z',
+  },
+];
+
 export default function PromptBasePage() {
-  const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-
-  // Mock data for demo
-  useEffect(() => {
-    setPrompts([
-      {
-        id: '1',
-        name: 'Python Coding Assistant',
-        description: 'A comprehensive prompt for Python code generation and debugging',
-        content: 'You are an expert Python developer. Help users write clean, efficient Python code...',
-        format_type: 'text',
-        language: 'en',
-        tags: ['python', 'coding', 'assistant'],
-        created_at: '2024-01-15T10:30:00Z',
-      },
-      {
-        id: '2',
-        name: 'JavaScript Helper',
-        description: 'Frontend development assistance with JavaScript and React',
-        content: 'You are a frontend development expert specializing in JavaScript and React...',
-        format_type: 'markdown',
-        language: 'en',
-        tags: ['javascript', 'web', 'frontend', 'react'],
-        created_at: '2024-01-14T15:45:00Z',
-      },
-      {
-        id: '3',
-        name: 'Article Writing Template',
-        description: 'Template for generating high-quality technical articles',
-        content: 'Write a comprehensive technical article about [TOPIC]. Include introduction...',
-        format_type: 'xml',
-        language: 'en',
-        tags: ['writing', 'content', 'technical'],
-        created_at: '2024-01-13T09:20:00Z',
-      },
-    ]);
-  }, []);
 
   const allTags = Array.from(new Set(prompts.flatMap(p => p.tags)));
 
