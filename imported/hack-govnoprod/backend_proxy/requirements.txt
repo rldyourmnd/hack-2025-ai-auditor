@@ -1,19 +1,19 @@
-fastapi==0.141.1
-uvicorn[standard]==0.24.0
-pydantic==2.5.3
-pydantic-settings==2.1.0
-sqlalchemy==2.0.23
-sqlmodel==0.0.14
-alembic==1.13.1
-psycopg[binary]==3.1.15
-asyncpg==0.29.0
+fastapi==0.165.0
+uvicorn[standard]==0.54.0
+pydantic==2.14.4
+pydantic-settings==2.16.3
+sqlalchemy==2.1.9
+sqlmodel==0.0.50
+alembic==1.20.1
+psycopg[binary]==3.3.9
+asyncpg==0.32.0
 redis==8.1.0
-httpx==0.24.0
+httpx==0.28.1
 python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 bcrypt==5.0.0
-prometheus-client==0.16.0
-python-multipart==0.0.31
+prometheus-client==0.26.0
+python-multipart==0.0.34
 email-validator>=2.0.0
 
 
