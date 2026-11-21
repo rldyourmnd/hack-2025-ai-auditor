@@ -14,5 +14,5 @@ python-jose[cryptography]==3.3.0
 passlib[bcrypt]==1.7.4
 langgraph==1.0.10
 langchain-core==0.3.29
-numpy==1.26.4
+numpy==2.5.5
 scikit-learn==1.5.2
