@@ -8,7 +8,7 @@
     "build:content": "vite --config vite.content.config.ts build"
   },
   "devDependencies": {
-    "@types/chrome": "^0.1.4",
+    "@types/chrome": "^0.3.0",
     "rimraf": "^6.0.0",
     "typescript": "^5.9.2",
     "vite": "^8.0.0"
