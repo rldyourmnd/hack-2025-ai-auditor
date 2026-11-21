@@ -223,7 +223,7 @@
     "uuid": "^14.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
+    "typescript": "^7.0.0",
     "@types/node": "^18.0.0",
     "@types/vscode": "^1.70.0"
   },
