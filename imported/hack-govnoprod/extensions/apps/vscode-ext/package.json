@@ -224,7 +224,7 @@
   },
   "devDependencies": {
     "typescript": "^5.0.0",
-    "@types/node": "^18.0.0",
+    "@types/node": "^26.0.0",
     "@types/vscode": "^1.70.0"
   },
   "files": [
