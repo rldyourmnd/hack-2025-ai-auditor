@@ -52,7 +52,7 @@ jobs:
         with:
           node-version: '24.21.0'
           package-manager-cache: false
-      - uses: NDDev-Technocracy-OpenNetwork/nddev-ci/actions/hosted-cache@969b1ca89612dfb457792228c0120204c5498a41 # v0.6.165
+      - uses: NDDev-Technocracy-OpenNetwork/nddev-ci/actions/hosted-cache@c78def305daf3ad1defceeecf301167529ed1fb6 # v0.6.166
       - name: Lint and build
         run: |
           npm ci --no-audit
@@ -88,7 +88,7 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
-      - uses: NDDev-Technocracy-OpenNetwork/nddev-ci/actions/hosted-sdk@969b1ca89612dfb457792228c0120204c5498a41 # v0.6.165
+      - uses: NDDev-Technocracy-OpenNetwork/nddev-ci/actions/hosted-sdk@c78def305daf3ad1defceeecf301167529ed1fb6 # v0.6.166
         with:
           tools: zizmor@1.32.0
       - name: Install actionlint 1.7.12 and gitleaks 8.30.1, checked against their digests
