@@ -1,11 +1,12 @@
 version: 2
 updates:
+  # Renovate proposes version updates; Dependabot opens only security updates, grouped.
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
-    cooldown:
-      default-days: 7
+    open-pull-requests-limit: 0
     groups:
-      actions:
+      security:
+        applies-to: security-updates
         patterns: ['*']
