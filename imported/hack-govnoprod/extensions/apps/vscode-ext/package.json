@@ -218,7 +218,7 @@
   "dependencies": {
     "fast-glob": "^3.3.2",
     "ignore": "^7.0.0",
-    "repomix": "^1.4.0",
+    "repomix": "^1.14.1",
     "yazl": "^3.0.0",
     "uuid": "^14.0.0"
   },
